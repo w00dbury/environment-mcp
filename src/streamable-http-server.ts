@@ -125,17 +125,27 @@ export function startStreamableHttpServer(options: {
   app.get("/mcp", mcpGetHandler);
   app.delete("/mcp", mcpDeleteHandler);
 
-  app.listen(port, host, (error?: Error) => {
-    if (error) {
-      console.error("Failed to start MCP HTTP server:", error);
-      process.exit(1);
-    }
+  const httpServer = app.listen(port, host, () => {
     console.log(
       `environment-mcp streamable HTTP listening on http://${host}:${port}/mcp`
     );
   });
 
+  httpServer.once("error", (err: NodeJS.ErrnoException) => {
+    console.error("Failed to start MCP HTTP server:", err);
+    process.exit(1);
+  });
+
   const shutdown = async () => {
+    const closePromise = new Promise<void>((resolve, reject) => {
+      httpServer.close((closeErr) => {
+        if (closeErr) {
+          reject(closeErr);
+          return;
+        }
+        resolve();
+      });
+    });
     for (const sid of Object.keys(transports)) {
       try {
         await transports[sid]?.close();
@@ -144,6 +154,7 @@ export function startStreamableHttpServer(options: {
         console.error(`Error closing transport ${sid}:`, e);
       }
     }
+    await closePromise;
     process.exit(0);
   };
 
