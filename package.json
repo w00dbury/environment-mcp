@@ -1,6 +1,6 @@
 {
   "name": "environment-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:http": "MCP_HTTP_PORT=3000 node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "lint": "npx ultracite check",
     "format": "npx ultracite fix"
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.7",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.13.10",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
