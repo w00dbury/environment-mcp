@@ -137,6 +137,20 @@ export function startStreamableHttpServer(options: {
   });
 
   const shutdown = async () => {
+    const sessionIds = Object.keys(transports);
+    await Promise.all(
+      sessionIds.map(async (sid) => {
+        const transport = transports[sid];
+        try {
+          await transport?.close();
+        } catch (e) {
+          console.error(`Error closing transport ${sid}:`, e);
+        } finally {
+          delete transports[sid];
+        }
+      })
+    );
+
     const closePromise = new Promise<void>((resolve, reject) => {
       httpServer.close((closeErr) => {
         if (closeErr) {
@@ -146,14 +160,6 @@ export function startStreamableHttpServer(options: {
         resolve();
       });
     });
-    for (const sid of Object.keys(transports)) {
-      try {
-        await transports[sid]?.close();
-        delete transports[sid];
-      } catch (e) {
-        console.error(`Error closing transport ${sid}:`, e);
-      }
-    }
     await closePromise;
     process.exit(0);
   };
