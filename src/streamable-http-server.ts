@@ -95,7 +95,14 @@ export function startStreamableHttpServer(options: {
       res.status(400).send("Invalid or missing session ID");
       return;
     }
-    await transports[sid].handleRequest(req, res);
+    try {
+      await transports[sid].handleRequest(req, res);
+    } catch (error) {
+      console.error("MCP HTTP GET error:", error);
+      if (!res.headersSent) {
+        res.status(500).send("Internal Server Error");
+      }
+    }
   };
 
   const mcpDeleteHandler = async (req: Request, res: Response) => {
